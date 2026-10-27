@@ -26,18 +26,27 @@ def _create_engine() -> Engine:
 engine = _create_engine()
 
 
+
 def initialize_database() -> None:
-    """Create a small demonstration dataset if it doesn't exist."""
+    """Initialize demo tables only when the configured database is empty."""
+    from sqlalchemy import inspect
+
+    existing_tables = set(inspect(engine).get_table_names())
+
+    # Preserve an existing dataset, including the imported Olist database.
+    if existing_tables:
+        return
+
     with engine.begin() as connection:
         connection.execute(text("""
-            CREATE TABLE IF NOT EXISTS departments (
+            CREATE TABLE departments (
                 id INTEGER PRIMARY KEY,
                 name TEXT NOT NULL UNIQUE
             )
         """))
 
         connection.execute(text("""
-            CREATE TABLE IF NOT EXISTS employees (
+            CREATE TABLE employees (
                 id INTEGER PRIMARY KEY,
                 name TEXT NOT NULL,
                 department_id INTEGER NOT NULL,
@@ -47,31 +56,21 @@ def initialize_database() -> None:
             )
         """))
 
-        department_count = connection.execute(
-            text("SELECT COUNT(*) FROM departments")
-        ).scalar_one()
+        connection.execute(text("""
+            INSERT INTO departments (id, name)
+            VALUES (1, 'Engineering'), (2, 'Sales'), (3, 'HR')
+        """))
 
-        if department_count == 0:
-            connection.execute(text("""
-                INSERT INTO departments (id, name)
-                VALUES (1, 'Engineering'), (2, 'Sales'), (3, 'HR')
-            """))
-
-        employee_count = connection.execute(
-            text("SELECT COUNT(*) FROM employees")
-        ).scalar_one()
-
-        if employee_count == 0:
-            connection.execute(text("""
-                INSERT INTO employees
-                    (id, name, department_id, salary, city)
-                VALUES
-                    (1, 'Asha', 1, 85000, 'Bengaluru'),
-                    (2, 'Ravi', 1, 92000, 'Mysuru'),
-                    (3, 'Meera', 2, 68000, 'Bengaluru'),
-                    (4, 'Arjun', 2, 72000, 'Hubballi'),
-                    (5, 'Nisha', 3, 61000, 'Mysuru')
-            """))
+        connection.execute(text("""
+            INSERT INTO employees
+                (id, name, department_id, salary, city)
+            VALUES
+                (1, 'Asha', 1, 85000, 'Bengaluru'),
+                (2, 'Ravi', 1, 92000, 'Mysuru'),
+                (3, 'Meera', 2, 68000, 'Bengaluru'),
+                (4, 'Arjun', 2, 72000, 'Hubballi'),
+                (5, 'Nisha', 3, 61000, 'Mysuru')
+        """))
 
 
 def execute_read_only(sql: str) -> tuple[list[str], list[dict]]:
