@@ -9,6 +9,7 @@ from app.db.database import execute_read_only, initialize_database
 from app.db.schema import get_schema
 from app.services.hallucination_detector import check_result_sanity
 from app.services.sql_generator import SQLGenerationError, generate_sql
+from app.services.schema_planner import plan_schema
 from app.services.sql_guardrails import SQLGuardrailError, validate_sql
 
 
@@ -56,15 +57,19 @@ def query(request: QueryRequest):
             for table in current_schema["tables"]
         }
 
+        planning = None
+
         if request.sql is not None:
-            # Validate SQL supplied directly by the caller.
+            # Caller-supplied SQL still goes through the same guardrails.
             sql = validate_sql(request.sql, allowed_tables)
         else:
-            # Generate SQL using Ollama.
+            # Plan against the live schema before generating SQL.
+            planning = plan_schema(request.question, current_schema)
+
             try:
                 generated = generate_sql(
                     request.question,
-                    current_schema,
+                    planning["schema"],
                 )
             except SQLGenerationError as exc:
                 raise HTTPException(
@@ -72,7 +77,7 @@ def query(request: QueryRequest):
                     detail=str(exc),
                 ) from exc
 
-            # Validate generated SQL before execution.
+            # Always validate against the full live database table allowlist.
             sql = validate_sql(
                 generated["sql"],
                 allowed_tables,
@@ -99,6 +104,15 @@ def query(request: QueryRequest):
                 2,
             ),
             "sanity_check": sanity,
+            "planning": (
+                {
+                    "selected_tables": planning["selected_tables"],
+                    "matched_terms": planning["matched_terms"],
+                    "strategy": planning["strategy"],
+                }
+                if planning is not None
+                else None
+            ),
         }
 
     except SQLGuardrailError as exc:
