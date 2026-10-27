@@ -11,3 +11,6 @@ __pycache__/
 .DS_Store
 coverage.xml
 htmlcov/
+
+# Real-world dataset files (do not commit raw data)
+/data/raw/
