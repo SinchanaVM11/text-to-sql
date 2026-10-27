@@ -205,3 +205,23 @@ def test_query_endpoint_blocks_unknown_table():
         )
 
     assert response.status_code == 400
+
+
+@pytest.mark.parametrize(
+    "function_call",
+    [
+        "readfile('/etc/passwd')",
+        "writefile('/tmp/guardrail-test.txt', 'test')",
+        "load_extension('malicious_extension')",
+        "fts3_tokenizer('simple')",
+        "READFILE('/etc/passwd')",
+        "WRITEFILE('/tmp/test.txt', 'test')",
+        "LOAD_EXTENSION('malicious_extension')",
+    ],
+)
+def test_rejects_blocked_functions_case_insensitively(function_call):
+    with pytest.raises(SQLGuardrailError):
+        validate_sql(
+            f"SELECT {function_call}",
+            ALLOWED_TABLES,
+        )
