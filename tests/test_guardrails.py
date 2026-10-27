@@ -225,3 +225,18 @@ def test_rejects_blocked_functions_case_insensitively(function_call):
             f"SELECT {function_call}",
             ALLOWED_TABLES,
         )
+
+
+@pytest.mark.parametrize(
+    "sql",
+    [
+        "SELECT name FROM employees LIMIT 0",
+        "SELECT name FROM employees LIMIT -1",
+        "SELECT name FROM employees LIMIT 1.5",
+        "SELECT name FROM employees LIMIT '10'",
+        "SELECT name FROM employees LIMIT 1 + 2",
+    ],
+)
+def test_rejects_invalid_limit_values(sql):
+    with pytest.raises(SQLGuardrailError):
+        validate_sql(sql, ALLOWED_TABLES)
