@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from time import perf_counter
 
 from fastapi import FastAPI, HTTPException
+from sqlalchemy.exc import SQLAlchemyError
 from pydantic import BaseModel, Field
 
 from app.db.database import execute_read_only, initialize_database
@@ -83,8 +84,51 @@ def query(request: QueryRequest):
                 allowed_tables,
             )
 
-        # Execute only after validation.
-        columns, rows = execute_read_only(sql)
+        # Execute only after validation. Generated SQL gets at most one
+        # correction attempt after a database execution error.
+        recovery = {"attempted": False, "succeeded": False}
+
+        try:
+            columns, rows = execute_read_only(sql)
+        except SQLAlchemyError as first_error:
+            if planning is None:
+                raise HTTPException(
+                    status_code=400,
+                    detail="The supplied SQL could not be executed.",
+                ) from first_error
+
+            recovery["attempted"] = True
+
+            # Keep database diagnostics bounded before passing them to the
+            # local model. Do not expose raw database errors in API responses.
+            error_message = str(first_error)[:500]
+
+            try:
+                corrected = generate_sql(
+                    request.question,
+                    planning["schema"],
+                    correction_context={
+                        "failed_sql": sql[:2000],
+                        "error": error_message,
+                    },
+                )
+            except SQLGenerationError as exc:
+                raise HTTPException(
+                    status_code=502,
+                    detail="SQL correction generation failed.",
+                ) from exc
+
+            # The corrected query is untrusted: validate it before retrying.
+            sql = validate_sql(corrected["sql"], allowed_tables)
+
+            try:
+                columns, rows = execute_read_only(sql)
+                recovery["succeeded"] = True
+            except SQLAlchemyError as retry_error:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Generated SQL failed after one correction attempt.",
+                ) from retry_error
 
         sanity = check_result_sanity(
             request.question,
@@ -104,6 +148,7 @@ def query(request: QueryRequest):
                 2,
             ),
             "sanity_check": sanity,
+            "recovery": recovery,
             "planning": (
                 {
                     "selected_tables": planning["selected_tables"],

@@ -10,8 +10,25 @@ class SQLGenerationError(RuntimeError):
     """Raised when the local model cannot generate SQL."""
 
 
-def _build_prompt(question: str, schema: dict) -> str:
+def _build_prompt(question: str, schema: dict, correction_context: dict | None = None) -> str:
     schema_json = json.dumps(schema, ensure_ascii=False, indent=2)
+
+    correction_instructions = ""
+    if correction_context:
+        failed_sql = str(correction_context.get("failed_sql", ""))[:2000]
+        error_message = str(correction_context.get("error", ""))[:500]
+        correction_instructions = f"""
+Previous attempt failed during database execution.
+
+Failed SQL:
+{failed_sql}
+
+Database error:
+{error_message}
+
+Correct the SQL using only the supplied schema. Return corrected SQL
+in the required JSON format.
+"""
 
     return f"""
 You are a Text-to-SQL engine.
@@ -33,12 +50,18 @@ Rules:
 Database schema:
 {schema_json}
 
+{correction_instructions}
+
 User question:
 {question}
 """.strip()
 
 
-def generate_sql(question: str, schema: dict) -> dict:
+def generate_sql(
+    question: str,
+    schema: dict,
+    correction_context: dict | None = None,
+) -> dict:
     """Generate SQL using the configured local Ollama model."""
     if not question or not question.strip():
         raise ValueError("Question cannot be empty.")
@@ -50,7 +73,7 @@ def generate_sql(question: str, schema: dict) -> dict:
 
     payload = {
         "model": settings.ollama_model,
-        "prompt": _build_prompt(question.strip(), schema),
+        "prompt": _build_prompt(question.strip(), schema, correction_context),
         "stream": False,
         "format": "json",
         "options": {
