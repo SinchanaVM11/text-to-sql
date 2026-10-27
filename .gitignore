@@ -14,3 +14,6 @@ htmlcov/
 
 # Real-world dataset files (do not commit raw data)
 /data/raw/
+
+# Local datasets and generated databases
+/data/
