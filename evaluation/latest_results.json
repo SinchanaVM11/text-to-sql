@@ -1,0 +1,379 @@
+{
+  "benchmark": "evaluation/benchmark.json",
+  "total_cases": 6,
+  "execution_successes": 6,
+  "result_matches": 6,
+  "execution_accuracy": 1.0,
+  "result_accuracy": 1.0,
+  "recovery_attempts": 0,
+  "recovery_successes": 0,
+  "cases": [
+    {
+      "id": "orders_canceled",
+      "category": "filtering",
+      "question": "How many orders were canceled?",
+      "execution_success": true,
+      "result_match": true,
+      "recovery_attempted": false,
+      "recovery_succeeded": false,
+      "latency_ms": 5742.29,
+      "error": null,
+      "expected_results": [
+        {
+          "canceled_orders": 625
+        }
+      ],
+      "actual_results": [
+        {
+          "COUNT(*)": 625
+        }
+      ],
+      "generated_sql": "SELECT COUNT(*) FROM orders WHERE order_status = 'canceled' LIMIT 1000",
+      "sanity_check": {
+        "passed": true,
+        "warnings": [],
+        "method": "basic_result_heuristics"
+      },
+      "planning": {
+        "selected_tables": [
+          "orders"
+        ],
+        "matched_terms": [
+          "orders"
+        ],
+        "strategy": "keyword_match"
+      }
+    },
+    {
+      "id": "orders_by_status",
+      "category": "aggregation",
+      "question": "How many orders are there for each order status?",
+      "execution_success": true,
+      "result_match": true,
+      "recovery_attempted": false,
+      "recovery_succeeded": false,
+      "latency_ms": 708.3,
+      "error": null,
+      "expected_results": [
+        {
+          "order_status": "approved",
+          "order_count": 2
+        },
+        {
+          "order_status": "canceled",
+          "order_count": 625
+        },
+        {
+          "order_status": "created",
+          "order_count": 5
+        },
+        {
+          "order_status": "delivered",
+          "order_count": 96478
+        },
+        {
+          "order_status": "invoiced",
+          "order_count": 314
+        },
+        {
+          "order_status": "processing",
+          "order_count": 301
+        },
+        {
+          "order_status": "shipped",
+          "order_count": 1107
+        },
+        {
+          "order_status": "unavailable",
+          "order_count": 609
+        }
+      ],
+      "actual_results": [
+        {
+          "order_status": "approved",
+          "order_count": 2
+        },
+        {
+          "order_status": "canceled",
+          "order_count": 625
+        },
+        {
+          "order_status": "created",
+          "order_count": 5
+        },
+        {
+          "order_status": "delivered",
+          "order_count": 96478
+        },
+        {
+          "order_status": "invoiced",
+          "order_count": 314
+        },
+        {
+          "order_status": "processing",
+          "order_count": 301
+        },
+        {
+          "order_status": "shipped",
+          "order_count": 1107
+        },
+        {
+          "order_status": "unavailable",
+          "order_count": 609
+        }
+      ],
+      "generated_sql": "SELECT order_status, COUNT(*) AS order_count FROM orders GROUP BY order_status LIMIT 1000",
+      "sanity_check": {
+        "passed": true,
+        "warnings": [],
+        "method": "basic_result_heuristics"
+      },
+      "planning": {
+        "selected_tables": [
+          "orders"
+        ],
+        "matched_terms": [
+          "orders",
+          "status"
+        ],
+        "strategy": "keyword_match"
+      }
+    },
+    {
+      "id": "average_review_score",
+      "category": "aggregation",
+      "question": "What is the average review score?",
+      "execution_success": true,
+      "result_match": true,
+      "recovery_attempted": false,
+      "recovery_succeeded": false,
+      "latency_ms": 982.7,
+      "error": null,
+      "expected_results": [
+        {
+          "average_review_score": 4.0864
+        }
+      ],
+      "actual_results": [
+        {
+          "AVG(review_score)": 4.08642062404257
+        }
+      ],
+      "generated_sql": "SELECT AVG(review_score) FROM order_reviews LIMIT 1000",
+      "sanity_check": {
+        "passed": true,
+        "warnings": [],
+        "method": "basic_result_heuristics"
+      },
+      "planning": {
+        "selected_tables": [
+          "order_reviews"
+        ],
+        "matched_terms": [
+          "review",
+          "score"
+        ],
+        "strategy": "keyword_match"
+      }
+    },
+    {
+      "id": "payment_value_by_type",
+      "category": "aggregation",
+      "question": "What is the total payment value for each payment type?",
+      "execution_success": true,
+      "result_match": true,
+      "recovery_attempted": false,
+      "recovery_succeeded": false,
+      "latency_ms": 1607.51,
+      "error": null,
+      "expected_results": [
+        {
+          "payment_type": "boleto",
+          "total_payment_value": 2869361.27
+        },
+        {
+          "payment_type": "credit_card",
+          "total_payment_value": 12542084.19
+        },
+        {
+          "payment_type": "debit_card",
+          "total_payment_value": 217989.79
+        },
+        {
+          "payment_type": "not_defined",
+          "total_payment_value": 0.0
+        },
+        {
+          "payment_type": "voucher",
+          "total_payment_value": 379436.87
+        }
+      ],
+      "actual_results": [
+        {
+          "payment_type": "boleto",
+          "total_payment_value": 2869361.27
+        },
+        {
+          "payment_type": "credit_card",
+          "total_payment_value": 12542084.19
+        },
+        {
+          "payment_type": "debit_card",
+          "total_payment_value": 217989.79
+        },
+        {
+          "payment_type": "not_defined",
+          "total_payment_value": 0.0
+        },
+        {
+          "payment_type": "voucher",
+          "total_payment_value": 379436.87
+        }
+      ],
+      "generated_sql": "SELECT payment_type, SUM(payment_value) AS total_payment_value FROM order_payments GROUP BY payment_type LIMIT 1000",
+      "sanity_check": {
+        "passed": true,
+        "warnings": [],
+        "method": "basic_result_heuristics"
+      },
+      "planning": {
+        "selected_tables": [
+          "order_items",
+          "order_payments"
+        ],
+        "matched_terms": [
+          "payment",
+          "type",
+          "value"
+        ],
+        "strategy": "keyword_match"
+      }
+    },
+    {
+      "id": "orders_by_year",
+      "category": "date_analysis",
+      "question": "How many orders were placed in each year?",
+      "execution_success": true,
+      "result_match": true,
+      "recovery_attempted": false,
+      "recovery_succeeded": false,
+      "latency_ms": 911.0,
+      "error": null,
+      "expected_results": [
+        {
+          "purchase_year": "2016",
+          "order_count": 329
+        },
+        {
+          "purchase_year": "2017",
+          "order_count": 45101
+        },
+        {
+          "purchase_year": "2018",
+          "order_count": 54011
+        }
+      ],
+      "actual_results": [
+        {
+          "year": "2016",
+          "order_count": 329
+        },
+        {
+          "year": "2017",
+          "order_count": 45101
+        },
+        {
+          "year": "2018",
+          "order_count": 54011
+        }
+      ],
+      "generated_sql": "SELECT STRFTIME('%Y', order_purchase_timestamp) AS year, COUNT(order_id) AS order_count FROM orders GROUP BY year LIMIT 1000",
+      "sanity_check": {
+        "passed": true,
+        "warnings": [],
+        "method": "basic_result_heuristics"
+      },
+      "planning": {
+        "selected_tables": [
+          "orders"
+        ],
+        "matched_terms": [
+          "orders"
+        ],
+        "strategy": "keyword_match"
+      }
+    },
+    {
+      "id": "seller_item_counts",
+      "category": "join",
+      "question": "Which five sellers supplied the most items, and how many items did each supply?",
+      "execution_success": true,
+      "result_match": true,
+      "recovery_attempted": false,
+      "recovery_succeeded": false,
+      "latency_ms": 1589.32,
+      "error": null,
+      "expected_results": [
+        {
+          "seller_id": "6560211a19b47992c3666cc44a7e94c0",
+          "item_count": 2033
+        },
+        {
+          "seller_id": "4a3ca9315b744ce9f8e9374361493884",
+          "item_count": 1987
+        },
+        {
+          "seller_id": "1f50f920176fa81dab994f9023523100",
+          "item_count": 1931
+        },
+        {
+          "seller_id": "cc419e0650a3c5ba77189a1882b7556a",
+          "item_count": 1775
+        },
+        {
+          "seller_id": "da8622b14eb17ae2831f4ac5b9dab84a",
+          "item_count": 1551
+        }
+      ],
+      "actual_results": [
+        {
+          "seller_id": "6560211a19b47992c3666cc44a7e94c0",
+          "item_count": 2033
+        },
+        {
+          "seller_id": "4a3ca9315b744ce9f8e9374361493884",
+          "item_count": 1987
+        },
+        {
+          "seller_id": "1f50f920176fa81dab994f9023523100",
+          "item_count": 1931
+        },
+        {
+          "seller_id": "cc419e0650a3c5ba77189a1882b7556a",
+          "item_count": 1775
+        },
+        {
+          "seller_id": "da8622b14eb17ae2831f4ac5b9dab84a",
+          "item_count": 1551
+        }
+      ],
+      "generated_sql": "SELECT s.seller_id, COUNT(*) AS item_count FROM order_items AS oi JOIN sellers AS s ON oi.seller_id = s.seller_id GROUP BY s.seller_id ORDER BY item_count DESC LIMIT 5",
+      "sanity_check": {
+        "passed": true,
+        "warnings": [],
+        "method": "basic_result_heuristics"
+      },
+      "planning": {
+        "selected_tables": [
+          "order_items",
+          "sellers"
+        ],
+        "matched_terms": [
+          "items",
+          "sellers"
+        ],
+        "strategy": "keyword_match"
+      }
+    }
+  ]
+}
