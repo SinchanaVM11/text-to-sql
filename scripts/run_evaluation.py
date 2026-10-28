@@ -127,7 +127,7 @@ def main():
                     "succeeded", False
                 )
 
-                                
+
                 actual_rows = body.get("rows", [])
 
                 record["result_match"] = results_match(

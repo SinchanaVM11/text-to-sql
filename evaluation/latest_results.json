@@ -16,7 +16,7 @@
       "result_match": true,
       "recovery_attempted": false,
       "recovery_succeeded": false,
-      "latency_ms": 5742.29,
+      "latency_ms": 708.71,
       "error": null,
       "expected_results": [
         {
@@ -52,7 +52,7 @@
       "result_match": true,
       "recovery_attempted": false,
       "recovery_succeeded": false,
-      "latency_ms": 708.3,
+      "latency_ms": 666.45,
       "error": null,
       "expected_results": [
         {
@@ -147,7 +147,7 @@
       "result_match": true,
       "recovery_attempted": false,
       "recovery_succeeded": false,
-      "latency_ms": 982.7,
+      "latency_ms": 447.04,
       "error": null,
       "expected_results": [
         {
@@ -184,7 +184,7 @@
       "result_match": true,
       "recovery_attempted": false,
       "recovery_succeeded": false,
-      "latency_ms": 1607.51,
+      "latency_ms": 1202.72,
       "error": null,
       "expected_results": [
         {
@@ -257,7 +257,7 @@
       "result_match": true,
       "recovery_attempted": false,
       "recovery_succeeded": false,
-      "latency_ms": 911.0,
+      "latency_ms": 945.54,
       "error": null,
       "expected_results": [
         {
@@ -311,7 +311,7 @@
       "result_match": true,
       "recovery_attempted": false,
       "recovery_succeeded": false,
-      "latency_ms": 1589.32,
+      "latency_ms": 1598.18,
       "error": null,
       "expected_results": [
         {
